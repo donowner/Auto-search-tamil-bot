@@ -45,31 +45,31 @@ BUTTONS2 = {}
 SPELL_CHECK = {}
 # ENABLE_SHORTLINK = ""
 
-@Client.on_message(filters.group & filters.text & filters.incoming)
-async def give_filter(client, message):
-    if message.chat.id != SUPPORT_CHAT_ID:
-        manual = await manual_filters(client, message)
-        if manual == False:
-            settings = await get_settings(message.chat.id)
-            try:
-                if settings['auto_ffilter']:
-                    await auto_filter(client, message)
-            except KeyError:
-                grpid = await active_connection(str(message.from_user.id))
-                await save_group_settings(grpid, 'auto_ffilter', True)
-                settings = await get_settings(message.chat.id)
-                if settings['auto_ffilter']:
-                    await auto_filter(client, message) 
-    else: #a better logic to avoid repeated lines of code in auto_filter function
-        search = message.text
-        temp_files, temp_offset, total_results = await get_search_results(chat_id=message.chat.id, query=search.lower(), offset=0, filter=True)
-        if total_results == 0:
-            return
-        else:
-            return await message.reply_text(f"<b>Hᴇʏ {message.from_user.mention}, {str(total_results)} ʀᴇsᴜʟᴛs ᴀʀᴇ ғᴏᴜɴᴅ ɪɴ ᴍʏ ᴅᴀᴛᴀʙᴀsᴇ ғᴏʀ ʏᴏᴜʀ ᴏ̨ᴜᴇʀʏ {search}. \n\nTʜɪs ɪs ᴀ sᴜᴘᴘᴏʀᴛ ɢʀᴏᴜᴘ sᴏ ᴛʜᴀᴛ ʏᴏᴜ ᴄᴀɴ'ᴛ ɢᴇᴛ ғɪʟᴇs ғʀᴏᴍ ʜᴇʀᴇ...\n\nJᴏɪɴ ᴀɴᴅ Sᴇᴀʀᴄʜ Hᴇʀᴇ - @TeamHMT_Movie</b>")
+#@Client.on_message(filters.group & filters.text & filters.incoming)
+#async def give_filter(client, message):
+#    if message.chat.id != SUPPORT_CHAT_ID:
+#        manual = await manual_filters(client, message)
+#        if manual == False:
+#            settings = await get_settings(message.chat.id)
+#            try:
+#                if settings['auto_ffilter']:
+#                    await auto_filter(client, message)
+#            except KeyError:
+#                grpid = await active_connection(str(message.from_user.id))
+#                await save_group_settings(grpid, 'auto_ffilter', True)
+#                settings = await get_settings(message.chat.id)
+ #               if settings['auto_ffilter']:
+#                    await auto_filter(client, message) 
+#    else: #a better logic to avoid repeated lines of code in auto_filter function
+#        search = message.text
+#        temp_files, temp_offset, total_results = await get_search_results(chat_id=message.chat.id, query=search.lower(), offset=0, filter=True)
+#        if total_results == 0:
+#            return
+#        else:
+#            return await message.reply_text(f"<b>Hᴇʏ {message.from_user.mention}, {str(total_results)} ʀᴇsᴜʟᴛs ᴀʀᴇ ғᴏᴜɴᴅ ɪɴ ᴍʏ ᴅᴀᴛᴀʙᴀsᴇ ғᴏʀ ʏᴏᴜʀ ᴏ̨ᴜᴇʀʏ {search}. \n\nTʜɪs ɪs ᴀ sᴜᴘᴘᴏʀᴛ ɢʀᴏᴜᴘ sᴏ ᴛʜᴀᴛ ʏᴏᴜ ᴄᴀɴ'ᴛ ɢᴇᴛ ғɪʟᴇs ғʀᴏᴍ ʜᴇʀᴇ...\n\nJᴏɪɴ ᴀɴᴅ Sᴇᴀʀᴄʜ Hᴇʀᴇ - @TeamHMT_Movie</b>")
 
-@Client.on_message(filters.private & filters.text & filters.incoming)
-async def pm_text(bot, message):
+#@Client.on_message(filters.private & filters.text & filters.incoming)
+#async def pm_text(bot, message):
     content = message.text
     user = message.from_user.first_name
     user_id = message.from_user.id
@@ -84,8 +84,8 @@ async def pm_text(bot, message):
         text=f"<b>#𝐏𝐌_𝐌𝐒𝐆\n\nNᴀᴍᴇ : {user}\n\nID : {user_id}\n\nMᴇssᴀɢᴇ : {content}</b>"
     )
 
-@Client.on_callback_query(filters.regex(r"^next"))
-async def next_page(bot, query):
+#@Client.on_callback_query(filters.regex(r"^next"))
+#async def next_page(bot, query):
     ident, req, key, offset = query.data.split("_")
     curr_time = datetime.now(pytz.timezone('Asia/Kolkata')).time()
     if int(req) not in [query.from_user.id, 0]:
@@ -231,60 +231,60 @@ async def next_page(bot, query):
             pass
     await query.answer()
 
-@Client.on_callback_query(filters.regex(r"^spol"))
-async def advantage_spoll_choker(bot, query):
-    _, user, movie_ = query.data.split('#')
-    movies = SPELL_CHECK.get(query.message.reply_to_message.id)
-    if not movies:
-        return await query.answer(script.OLD_ALRT_TXT.format(query.from_user.first_name), show_alert=True)
-    if int(user) != 0 and query.from_user.id != int(user):
-        return await query.answer(script.ALRT_TXT.format(query.from_user.first_name), show_alert=True)
-    if movie_ == "close_spellcheck":
-        return await query.message.delete()
-    movie = movies[(int(movie_))]
-    movie = re.sub(r"[:\-]", " ", movie)
-    movie = re.sub(r"\s+", " ", movie).strip()
-    await query.answer(script.TOP_ALRT_MSG)
-    gl = await global_filters(bot, query.message, text=movie)
-    if gl == False:
-        k = await manual_filters(bot, query.message, text=movie)
-        if k == False:
-            files, offset, total_results = await get_search_results(query.message.chat.id, movie, offset=0, filter=True)
-            if files:
-                k = (movie, files, offset, total_results)
-                await auto_filter(bot, query, k)
-            else:
-                reqstr1 = query.from_user.id if query.from_user else 0
-                reqstr = await bot.get_users(reqstr1)
-                if NO_RESULTS_MSG:
-                    await bot.send_message(chat_id=LOG_CHANNEL, text=(script.NORSLTS.format(reqstr.id, reqstr.mention, movie)))
-                k = await query.message.edit(script.MVE_NT_FND)
-                await asyncio.sleep(10)
-                await k.delete()
+#@Client.on_callback_query(filters.regex(r"^spol"))
+#async def advantage_spoll_choker(bot, query):
+#    _, user, movie_ = query.data.split('#')
+#    movies = SPELL_CHECK.get(query.message.reply_to_message.id)
+#    if not movies:
+#        return await query.answer(script.OLD_ALRT_TXT.format(query.from_user.first_name), show_alert=True)
+#    if int(user) != 0 and query.from_user.id != int(user):
+#        return await query.answer(script.ALRT_TXT.format(query.from_user.first_name), show_alert=True)
+#    if movie_ == "close_spellcheck":
+#        return await query.message.delete()
+#    movie = movies[(int(movie_))]
+#    movie = re.sub(r"[:\-]", " ", movie)
+#    movie = re.sub(r"\s+", " ", movie).strip()
+#    await query.answer(script.TOP_ALRT_MSG)
+#    gl = await global_filters(bot, query.message, text=movie)
+#    if gl == False:
+#        k = await manual_filters(bot, query.message, text=movie)
+#        if k == False:
+#            files, offset, total_results = await get_search_results(query.message.chat.id, movie, offset=0, filter=True)
+#            if files:
+#                k = (movie, files, offset, total_results)
+#                await auto_filter(bot, query, k)
+#            else:
+#                reqstr1 = query.from_user.id if query.from_user else 0
+#                reqstr = await bot.get_users(reqstr1)
+#                if NO_RESULTS_MSG:
+#                    await bot.send_message(chat_id=LOG_CHANNEL, text=(script.NORSLTS.format(reqstr.id, reqstr.mention, movie)))
+#                k = await query.message.edit(script.MVE_NT_FND)
+#                await asyncio.sleep(10)
+#                await k.delete()
 
 #languages
 
-@Client.on_callback_query(filters.regex(r"^languages#"))
-async def languages_cb_handler(client: Client, query: CallbackQuery):
+#@Client.on_callback_query(filters.regex(r"^languages#"))
+#async def languages_cb_handler(client: Client, query: CallbackQuery):
 
-    try:
-        if int(query.from_user.id) not in [query.message.reply_to_message.from_user.id, 0]:
+#    try:
+#        if int(query.from_user.id) not in [query.message.reply_to_message.from_user.id, 0]:
             return await query.answer(
                 f"⚠️ ʜᴇʟʟᴏ{query.from_user.first_name},\nᴛʜɪꜱ ɪꜱ ɴᴏᴛ ʏᴏᴜʀ ᴍᴏᴠɪᴇ ʀᴇQᴜᴇꜱᴛ,\nʀᴇQᴜᴇꜱᴛ ʏᴏᴜʀ'ꜱ...",
                 show_alert=True,
             )
-    except:
-        pass
-    _, key = query.data.split("#")
+#    except:
+#        pass
+#    _, key = query.data.split("#")
     # if BUTTONS.get(key+"1")!=None:
     #     search = BUTTONS.get(key+"1")
     # else:
     #     search = BUTTONS.get(key)
     #     BUTTONS[key+"1"] = search
-    search = FRESH.get(key)
-    search = search.replace(' ', '_')
-    btn = []
-    for i in range(0, len(LANGUAGES)-1, 2):
+#    search = FRESH.get(key)
+#    search = search.replace(' ', '_')
+#    btn = []
+#    for i in range(0, len(LANGUAGES)-1, 2):
         btn.append([
             InlineKeyboardButton(
                 text=LANGUAGES[i].title(),
@@ -296,23 +296,23 @@ async def languages_cb_handler(client: Client, query: CallbackQuery):
             ),
         ])
 
-    btn.insert(
-        0,
-        [
-            InlineKeyboardButton(
-                text="👇 𝖲𝖾𝗅𝖾𝖼𝗍 𝖸𝗈𝗎𝗋 𝖫𝖺𝗇𝗀𝗎𝖺𝗀𝖾𝗌 👇", callback_data="ident"
-            )
-        ],
-    )
-    req = query.from_user.id
-    offset = 0
-    btn.append([InlineKeyboardButton(text="↭ ʙᴀᴄᴋ ᴛᴏ ꜰɪʟᴇs ​↭", callback_data=f"fl#homepage#{key}")])
+#    btn.insert(
+#        0,
+#        [
+#            InlineKeyboardButton(
+#                text="👇 𝖲𝖾𝗅𝖾𝖼𝗍 𝖸𝗈𝗎𝗋 𝖫𝖺𝗇𝗀𝗎𝖺𝗀𝖾𝗌 👇", callback_data="ident"
+#            )
+#        ],
+#    )
+#    req = query.from_user.id
+#    offset = 0
+#    btn.append([InlineKeyboardButton(text="↭ ʙᴀᴄᴋ ᴛᴏ ꜰɪʟᴇs ​↭", callback_data=f"fl#homepage#{key}")])
 
-    await query.edit_message_reply_markup(InlineKeyboardMarkup(btn))
+#    await query.edit_message_reply_markup(InlineKeyboardMarkup(btn))
     
 
-@Client.on_callback_query(filters.regex(r"^fl#"))
-async def filter_languages_cb_handler(client: Client, query: CallbackQuery):
+#@Client.on_callback_query(filters.regex(r"^fl#"))
+#async def filter_languages_cb_handler(client: Client, query: CallbackQuery):
     _, lang, key = query.data.split("#")
     curr_time = datetime.now(pytz.timezone('Asia/Kolkata')).time()
     search = FRESH.get(key)
@@ -419,173 +419,173 @@ async def filter_languages_cb_handler(client: Client, query: CallbackQuery):
     
     
     
-@Client.on_callback_query(filters.regex(r"^seasons#"))
-async def seasons_cb_handler(client: Client, query: CallbackQuery):
+#@Client.on_callback_query(filters.regex(r"^seasons#"))
+#async def seasons_cb_handler(client: Client, query: CallbackQuery):
 
-    try:
-        if int(query.from_user.id) not in [query.message.reply_to_message.from_user.id, 0]:
-            return await query.answer(
-                f"⚠️ ʜᴇʟʟᴏ{query.from_user.first_name},\nᴛʜɪꜱ ɪꜱ ɴᴏᴛ ʏᴏᴜʀ ᴍᴏᴠɪᴇ ʀᴇQᴜᴇꜱᴛ,\nʀᴇQᴜᴇꜱᴛ ʏᴏᴜʀ'ꜱ...",
-                show_alert=True,
+#    try:
+#        if int(query.from_user.id) not in [query.message.reply_to_message.from_user.id, 0]:
+#            return await query.answer(
+#                f"⚠️ ʜᴇʟʟᴏ{query.from_user.first_name},\nᴛʜɪꜱ ɪꜱ ɴᴏᴛ ʏᴏᴜʀ ᴍᴏᴠɪᴇ ʀᴇQᴜᴇꜱᴛ,\nʀᴇQᴜᴇꜱᴛ ʏᴏᴜʀ'ꜱ...",
+#                show_alert=True,
             )
-    except:
-        pass
-    
-    _, key = query.data.split("#")
+#    except:
+#        pass
+#    
+#    _, key = query.data.split("#")
     # if BUTTONS.get(key+"2")!=None:
     #     search = BUTTONS.get(key+"2")
     # else:
     #     search = BUTTONS.get(key)
     #     BUTTONS[key+"2"] = search
-    search = FRESH.get(key)
-    BUTTONS[key] = None
-    search = search.replace(' ', '_')
-    btn = []
-    for i in range(0, len(SEASONS)-1, 2):
-        btn.append([
-            InlineKeyboardButton(
-                text=SEASONS[i].title(),
-                callback_data=f"fs#{SEASONS[i].lower()}#{key}"
-            ),
-            InlineKeyboardButton(
-                text=SEASONS[i+1].title(),
-                callback_data=f"fs#{SEASONS[i+1].lower()}#{key}"
-            ),
-        ])
+#    search = FRESH.get(key)
+#    BUTTONS[key] = None
+#    search = search.replace(' ', '_')
+#    btn = []
+#    for i in range(0, len(SEASONS)-1, 2):
+#        btn.append([
+#            InlineKeyboardButton(
+#                text=SEASONS[i].title(),
+#                callback_data=f"fs#{SEASONS[i].lower()}#{key}"
+#            ),
+#            InlineKeyboardButton(
+#                text=SEASONS[i+1].title(),
+#                callback_data=f"fs#{SEASONS[i+1].lower()}#{key}"
+#            ),
+#        ])
 
-    btn.insert(
-        0,
-        [
-            InlineKeyboardButton(
-                text="👇 𝖲𝖾𝗅𝖾𝖼𝗍 Season 👇", callback_data="ident"
-            )
-        ],
-    )
-    req = query.from_user.id
-    offset = 0
-    btn.append([InlineKeyboardButton(text="↭ ʙᴀᴄᴋ ᴛᴏ ꜰɪʟᴇs ​↭", callback_data=f"next_{req}_{key}_{offset}")])
+#    btn.insert(
+#        0,
+#        [
+#            InlineKeyboardButton(
+#                text="👇 𝖲𝖾𝗅𝖾𝖼𝗍 Season 👇", callback_data="ident"
+#            )
+#        ],
+#    )
+#    req = query.from_user.id
+#    offset = 0
+#    btn.append([InlineKeyboardButton(text="↭ ʙᴀᴄᴋ ᴛᴏ ꜰɪʟᴇs ​↭", callback_data=f"next_{req}_{key}_{offset}")])
 
-    await query.edit_message_reply_markup(InlineKeyboardMarkup(btn))
+#    await query.edit_message_reply_markup(InlineKeyboardMarkup(btn))
 
 
-@Client.on_callback_query(filters.regex(r"^fs#"))
-async def filter_seasons_cb_handler(client: Client, query: CallbackQuery):
-    _, seas, key = query.data.split("#")
-    curr_time = datetime.now(pytz.timezone('Asia/Kolkata')).time()
-    search = FRESH.get(key)
-    search = search.replace("_", " ")
-    sea = ""
-    season_search = ["s01","s02", "s03", "s04", "s05", "s06", "s07", "s08", "s09", "s10", "season 01","season 02","season 03","season 04","season 05","season 06","season 07","season 08","season 09","season 10", "season 1","season 2","season 3","season 4","season 5","season 6","season 7","season 8","season 9"]
-    for x in range (len(season_search)):
-        if season_search[x] in search:
-            sea = season_search[x]
-            break
-    if sea:
-        search = search.replace(sea, "")
-    else:
-        search = search
+#@Client.on_callback_query(filters.regex(r"^fs#"))
+#async def filter_seasons_cb_handler(client: Client, query: CallbackQuery):
+#    _, seas, key = query.data.split("#")
+#    curr_time = datetime.now(pytz.timezone('Asia/Kolkata')).time()
+#    search = FRESH.get(key)
+#    search = search.replace("_", " ")
+#    sea = ""
+#    season_search = ["s01","s02", "s03", "s04", "s05", "s06", "s07", "s08", "s09", "s10", "season 01","season 02","season 03","season 04","season 05","season 06","season 07","season 08","season 09","season 10", "season 1","season 2","season 3","season 4","season 5","season 6","season 7","season 8","season 9"]
+#    for x in range (len(season_search)):
+#        if season_search[x] in search:
+#            sea = season_search[x]
+#            break
+#    if sea:
+#        search = search.replace(sea, "")
+#    else:
+#        search = search
+#    
+#    req = query.from_user.id
+#    chat_id = query.message.chat.id
+#    message = query.message
+ #   try:
+#        if int(req) not in [query.message.reply_to_message.from_user.id, 0]:
+ #           return await query.answer(
+   #             f"⚠️ ʜᴇʟʟᴏ{query.from_user.first_name},\nᴛʜɪꜱ ɪꜱ ɴᴏᴛ ʏᴏᴜʀ ᴍᴏᴠɪᴇ ʀᴇQᴜᴇꜱᴛ,\nʀᴇQᴜᴇꜱᴛ ʏᴏᴜʀ'ꜱ...",
+   #             show_alert=True,
+  #          )
+  #  except:
+   #     pass
+#    
+  #  searchagn = search
+#search1 = search
+  #  search2 = search
+   # search = f"{search} {seas}"
+  #  BUTTONS0[key] = search
+   # 
+#    files, _, _ = await get_search_results(chat_id, search, max_results=10)
+ #   files = [file for file in files if re.search(seas, file.file_name, re.IGNORECASE)]
     
-    req = query.from_user.id
-    chat_id = query.message.chat.id
-    message = query.message
-    try:
-        if int(req) not in [query.message.reply_to_message.from_user.id, 0]:
-            return await query.answer(
-                f"⚠️ ʜᴇʟʟᴏ{query.from_user.first_name},\nᴛʜɪꜱ ɪꜱ ɴᴏᴛ ʏᴏᴜʀ ᴍᴏᴠɪᴇ ʀᴇQᴜᴇꜱᴛ,\nʀᴇQᴜᴇꜱᴛ ʏᴏᴜʀ'ꜱ...",
-                show_alert=True,
-            )
-    except:
-        pass
+ #   seas1 = "s01" if seas == "season 1" else "s02" if seas == "season 2" else "s03" if seas == "season 3" else "s04" if seas == "season 4" else "s05" if seas == "season 5" else "s06" if seas == "season 6" else "s07" if seas == "season 7" else "s08" if seas == "season 8" else "s09" if seas == "season 9" else "s10" if seas == "season 10" else ""
+   # search1 = f"{search1} {seas1}"
+ #   BUTTONS1[key] = search1
+ #   files1, _, _ = await get_search_results(chat_id, search1, max_results=10)
+  #  files1 = [file for file in files1 if re.search(seas1, file.file_name, re.IGNORECASE)]
     
-    searchagn = search
-    search1 = search
-    search2 = search
-    search = f"{search} {seas}"
-    BUTTONS0[key] = search
+  #  if files1:
+   #     files.extend(files1)
     
-    files, _, _ = await get_search_results(chat_id, search, max_results=10)
-    files = [file for file in files if re.search(seas, file.file_name, re.IGNORECASE)]
-    
-    seas1 = "s01" if seas == "season 1" else "s02" if seas == "season 2" else "s03" if seas == "season 3" else "s04" if seas == "season 4" else "s05" if seas == "season 5" else "s06" if seas == "season 6" else "s07" if seas == "season 7" else "s08" if seas == "season 8" else "s09" if seas == "season 9" else "s10" if seas == "season 10" else ""
-    search1 = f"{search1} {seas1}"
-    BUTTONS1[key] = search1
-    files1, _, _ = await get_search_results(chat_id, search1, max_results=10)
-    files1 = [file for file in files1 if re.search(seas1, file.file_name, re.IGNORECASE)]
-    
-    if files1:
-        files.extend(files1)
-    
-    seas2 = "season 01" if seas == "season 1" else "season 02" if seas == "season 2" else "season 03" if seas == "season 3" else "season 04" if seas == "season 4" else "season 05" if seas == "season 5" else "season 06" if seas == "season 6" else "season 07" if seas == "season 7" else "season 08" if seas == "season 8" else "season 09" if seas == "season 9" else "s010"
-    search2 = f"{search2} {seas2}"
-    BUTTONS2[key] = search2
-    files2, _, _ = await get_search_results(chat_id, search2, max_results=10)
-    files2 = [file for file in files2 if re.search(seas2, file.file_name, re.IGNORECASE)]
+ #   seas2 = "season 01" if seas == "season 1" else "season 02" if seas == "season 2" else "season 03" if seas == "season 3" else "season 04" if seas == "season 4" else "season 05" if seas == "season 5" else "season 06" if seas == "season 6" else "season 07" if seas == "season 7" else "season 08" if seas == "season 8" else "season 09" if seas == "season 9" else "s010"
+   # search2 = f"{search2} {seas2}"
+  #  BUTTONS2[key] = search2
+ #   files2, _, _ = await get_search_results(chat_id, search2, max_results=10)
+  #  files2 = [file for file in files2 if re.search(seas2, file.file_name, re.IGNORECASE)]
 
-    if files2:
-        files.extend(files2)
+   # if files2:
+ #       files.extend(files2)
         
-    if not files:
-        await query.answer("🚫 𝗡𝗼 𝗙𝗶𝗹𝗲 𝗪𝗲𝗿𝗲 𝗙𝗼𝘂𝗻𝗱 🚫", show_alert=1)
-        return
-    temp.GETALL[key] = files
-    settings = await get_settings(message.chat.id)
-    pre = 'filep' if settings['file_secure'] else 'file'
-    if settings["button"]:
-        btn = [
-            [
-                InlineKeyboardButton(
-                    text=f"[{get_size(file.file_size)}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}", callback_data=f'{pre}#{file.file_id}'
-                ),
-            ]
-            for file in files
-        ]
-        btn.insert(0, [
-            InlineKeyboardButton("𝐒𝐞𝐧𝐝 𝐀𝐥𝐥", callback_data=f"sendfiles#{key}"),
-            InlineKeyboardButton("Sᴇʟᴇᴄᴛ ᴀɢᴀɪɴ", callback_data=f"seasons#{key}")
-        ])
-    else:
-        btn = []
-        btn.insert(0, 
-            [
-                InlineKeyboardButton(f'Sᴇʟᴇᴄᴛ ➢', 'select'),
-                InlineKeyboardButton("ʟᴀɴɢᴜᴀɢᴇs", callback_data=f"languages#{key}"),
-                InlineKeyboardButton("Sᴇᴀsᴏɴs",  callback_data=f"seasons#{key}")
-            ]
-        )
-        btn.insert(0, [
-            InlineKeyboardButton("Sᴛᴀʀᴛ Bᴏᴛ", url=f"https://telegram.me/{temp.U_NAME}"),
-            InlineKeyboardButton("𝐒𝐞𝐧𝐝 𝐀𝐥𝐥", callback_data=f"sendfiles#{key}")
-        ])
+ #   if not files:
+        #await query.answer("🚫 𝗡𝗼 𝗙𝗶𝗹𝗲 𝗪𝗲𝗿𝗲 𝗙𝗼𝘂𝗻𝗱 🚫", show_alert=1)
+    #    return
+   # temp.GETALL[key] = files
+ #   settings = await get_settings(message.chat.id)
+ #   pre = 'filep' if settings['file_secure'] else 'file'
+   # if settings["button"]:
+   #     btn = [
+     #       [
+           #     InlineKeyboardButton(
+               #     text=f"[{get_size(file.file_size)}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file.file_name.split()))}", callback_data=f'{pre}#{file.file_id}'
+ #               ),
+     #       ]
+     #       for file in files
+ #       ]
+     #   btn.insert(0, [
+  #          InlineKeyboardButton("𝐒𝐞𝐧𝐝 𝐀𝐥𝐥", callback_data=f"sendfiles#{key}"),
+   #         InlineKeyboardButton("Sᴇʟᴇᴄᴛ ᴀɢᴀɪɴ", callback_data=f"seasons#{key}")
+ #       ])
+ #   else:
+#        btn = []
+   #     btn.insert(0, 
+        #    [
+    #            InlineKeyboardButton(f'Sᴇʟᴇᴄᴛ ➢', 'select'),
+    #            InlineKeyboardButton("ʟᴀɴɢᴜᴀɢᴇs", callback_data=f"languages#{key}"),
+      #          InlineKeyboardButton("Sᴇᴀsᴏɴs",  callback_data=f"seasons#{key}")
+   #         ]
+ #       )
+   #     btn.insert(0, [
+   #         InlineKeyboardButton("Sᴛᴀʀᴛ Bᴏᴛ", url=f"https://telegram.me/{temp.U_NAME}"),
+      #      InlineKeyboardButton("𝐒𝐞𝐧𝐝 𝐀𝐥𝐥", callback_data=f"sendfiles#{key}")
+#        ])
         
-    offset = 0
+#    offset = 0
 
-    btn.append([
-            InlineKeyboardButton(
-                text="↭ ʙᴀᴄᴋ ᴛᴏ ꜰɪʟᴇs ​↭",
-                callback_data=f"next_{req}_{key}_{offset}"
-                ),
-    ])
+#    btn.append([
+  #          InlineKeyboardButton(
+         #       text="↭ ʙᴀᴄᴋ ᴛᴏ ꜰɪʟᴇs ​↭",
+      #          callback_data=f"next_{req}_{key}_{offset}"
+       #         ),
+ #   ])
     
-    if not settings["button"]:
-        cur_time = datetime.now(pytz.timezone('Asia/Kolkata')).time()
-        time_difference = timedelta(hours=cur_time.hour, minutes=cur_time.minute, seconds=(cur_time.second+(cur_time.microsecond/1000000))) - timedelta(hours=curr_time.hour, minutes=curr_time.minute, seconds=(curr_time.second+(curr_time.microsecond/1000000)))
-        remaining_seconds = "{:.2f}".format(time_difference.total_seconds())
-        total_results = len(files)
-        cap = await get_cap(settings, remaining_seconds, files, query, total_results, search)
-        try:
-            await query.message.edit_text(text=cap, reply_markup=InlineKeyboardMarkup(btn), disable_web_page_preview=True)
-        except MessageNotModified:
-            pass
-    else:
-        try:
-            await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(btn))
-        except MessageNotModified:
-            pass
-    await query.answer()
+  #  if not settings["button"]:
+   #     cur_time = datetime.now(pytz.timezone('Asia/Kolkata')).time()
+  #      time_difference = timedelta(hours=cur_time.hour, minutes=cur_time.minute, seconds=(cur_time.second+(cur_time.microsecond/1000000))) - timedelta(hours=curr_time.hour, minutes=curr_time.minute, seconds=(curr_time.second+(curr_time.microsecond/1000000)))
+ #       remaining_seconds = "{:.2f}".format(time_difference.total_seconds())
+  #      total_results = len(files)
+  #      cap = await get_cap(settings, remaining_seconds, files, query, total_results, search)
+  #      try:
+  #          await query.message.edit_text(text=cap, reply_markup=InlineKeyboardMarkup(btn), disable_web_page_preview=True)
+ #       except MessageNotModified:
+    #        pass
+ #   else:
+   #    try:
+  #          await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(btn))
+   #     except MessageNotModified:
+ #           pass
+ #   await query.answer()
 
                 
-@Client.on_callback_query()
-async def cb_handler(client: Client, query: CallbackQuery):
+#@Client.on_callback_query()
+#async def cb_handler(client: Client, query: CallbackQuery):
     try:
         link = await client.create_chat_invite_link(int(REQST_CHANNEL))
     except:
@@ -1621,7 +1621,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
     await query.answer(MSG_ALRT)
 
     
-async def auto_filter(client, msg, spoll=False):
+#async def auto_filter(client, msg, spoll=False):
     curr_time = datetime.now(pytz.timezone('Asia/Kolkata')).time()
     # reqstr1 = msg.from_user.id if msg.from_user else 0
     # reqstr = await client.get_users(reqstr1)
@@ -1834,7 +1834,7 @@ async def auto_filter(client, msg, spoll=False):
             await message.delete()
 
 
-async def advantage_spell_chok(client, msg):
+#async def advantage_spell_chok(client, msg):
     mv_id = msg.id
     mv_rqst = msg.text
     reqstr1 = msg.from_user.id if msg.from_user else 0
@@ -1997,414 +1997,181 @@ async def advantage_spell_chok(client, msg):
                     await spell_check_del.delete()
 
 
-async def manual_filters(client, message, text=False):
-    settings = await get_settings(message.chat.id)
-    group_id = message.chat.id
-    name = text or message.text
-    reply_id = message.reply_to_message.id if message.reply_to_message else message.id
-    keywords = await get_filters(group_id)
-    for keyword in reversed(sorted(keywords, key=len)):
-        pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
-        if re.search(pattern, name, flags=re.IGNORECASE):
-            reply_text, btn, alert, fileid = await find_filter(group_id, keyword)
+#async def manual_filters(client, message, text=False):
+#    settings = await get_settings(message.chat.id)
+#    group_id = message.chat.id
+ #   name = text or message.text
+ #   reply_id = message.reply_to_message.id if message.reply_to_message else message.id
+#    keywords = await get_filters(group_id)
+   # for keyword in reversed(sorted(keywords, key=len)):
+   #     pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
+     #   if re.search(pattern, name, flags=re.IGNORECASE):
+     #       reply_text, btn, alert, fileid = await find_filter(group_id, keyword)
 
-            if reply_text:
-                reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
+     #       if reply_text:
+        #        reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
 
-            if btn is not None:
-                try:
-                    if fileid == "None":
-                        if btn == "[]":
-                            joelkb = await client.send_message(
-                                group_id, 
-                                reply_text, 
-                                disable_web_page_preview=True,
-                                protect_content=True if settings["file_secure"] else False,
-                                reply_to_message_id=reply_id
-                            )
-                            try:
-                                if settings['auto_ffilter']:
-                                    await auto_filter(client, message)
-                                    try:
-                                        if settings['auto_delete']:
-                                            await joelkb.delete()
-                                    except KeyError:
-                                        grpid = await active_connection(str(message.from_user.id))
-                                        await save_group_settings(grpid, 'auto_delete', True)
-                                        settings = await get_settings(message.chat.id)
-                                        if settings['auto_delete']:
-                                            await joelkb.delete()
-                                else:
-                                    try:
-                                        if settings['auto_delete']:
-                                            await asyncio.sleep(600)
-                                            await joelkb.delete()
-                                    except KeyError:
-                                        grpid = await active_connection(str(message.from_user.id))
-                                        await save_group_settings(grpid, 'auto_delete', True)
-                                        settings = await get_settings(message.chat.id)
-                                        if settings['auto_delete']:
-                                            await asyncio.sleep(600)
-                                            await joelkb.delete()
-                            except KeyError:
-                                grpid = await active_connection(str(message.from_user.id))
-                                await save_group_settings(grpid, 'auto_ffilter', True)
-                                settings = await get_settings(message.chat.id)
-                                if settings['auto_ffilter']:
-                                    await auto_filter(client, message)
+    #        if btn is not None:
+       #         try:
+    #                if fileid == "None":
+        #                if btn == "[]":
+           #                 joelkb = await client.send_message(
+     #                           group_id, 
+           #                     reply_text, 
+       #                         disable_web_page_preview=True,
+     #                           protect_content=True if settings["file_secure"] else False,
+      #                          reply_to_message_id=reply_id
+      #                      )
+               #             try:
+      #                          if settings['auto_ffilter']:
+       #                             await auto_filter(client, message)
+          #                          try:
+        #                                if settings['auto_delete']:
+    #                                        await joelkb.delete()
+        #                            except KeyError:
+       #                                 grpid = await active_connection(str(message.from_user.id))
+      #                                  await save_group_settings(grpid, 'auto_delete', True)
+      #                                  settings = await get_settings(message.chat.id)
+         #                               if settings['auto_delete']:
+         #                                   await joelkb.delete()
+             #                   else:
+           #                         try:
+             #                           if settings['auto_delete']:
+         #                                   await asyncio.sleep(600)
+              #                              await joelkb.delete()
+                #                    except KeyError:
+      #                                  grpid = await active_connection(str(message.from_user.id))
+       #                                 await save_group_settings(grpid, 'auto_delete', True)
+        #                                settings = await get_settings(message.chat.id)
+          #                              if settings['auto_delete']:
+          #                                  await asyncio.sleep(600)
+       #                                     await joelkb.delete()
+       #                     except KeyError:
+       #                         grpid = await active_connection(str(message.from_user.id))
+          #                      await #save_group_settings(grpid, 'auto_ffilter', True)
+         #                       settings = await get_settings(message.chat.id)
+  #                              if settings['auto_ffilter']:
+         #                           await auto_filter(client, message)
 
-                        else:
-                            button = eval(btn)
-                            joelkb = await client.send_message(
-                                group_id,
-                                reply_text,
-                                disable_web_page_preview=True,
-                                reply_markup=InlineKeyboardMarkup(button),
-                                protect_content=True if settings["file_secure"] else False,
-                                reply_to_message_id=reply_id
-                            )
-                            try:
-                                if settings['auto_ffilter']:
-                                    await auto_filter(client, message)
-                                    try:
-                                        if settings['auto_delete']:
-                                            await joelkb.delete()
-                                    except KeyError:
-                                        grpid = await active_connection(str(message.from_user.id))
-                                        await save_group_settings(grpid, 'auto_delete', True)
-                                        settings = await get_settings(message.chat.id)
-                                        if settings['auto_delete']:
-                                            await joelkb.delete()
-                                else:
-                                    try:
-                                        if settings['auto_delete']:
-                                            await asyncio.sleep(600)
-                                            await joelkb.delete()
-                                    except KeyError:
-                                        grpid = await active_connection(str(message.from_user.id))
-                                        await save_group_settings(grpid, 'auto_delete', True)
-                                        settings = await get_settings(message.chat.id)
-                                        if settings['auto_delete']:
-                                            await asyncio.sleep(600)
-                                            await joelkb.delete()
-                            except KeyError:
-                                grpid = await active_connection(str(message.from_user.id))
-                                await save_group_settings(grpid, 'auto_ffilter', True)
-                                settings = await get_settings(message.chat.id)
-                                if settings['auto_ffilter']:
-                                    await auto_filter(client, message)
+        #                else:
+           #                 button = eval(btn)
+            #                joelkb = await client.send_message(
+             #                   group_id,
+            #                    reply_text,
+          #                      disable_web_page_preview=True,
+            #                    reply_markup=InlineKeyboardMarkup(button),
+            #                    protect_content=True if settings["file_secure"] else False,
+             #                   reply_to_message_id=reply_id
+         #                   )
+         #                   try:
+            #                    if settings['auto_ffilter']:
+            #                        await auto_filter(client, message)
+          #                          try:
+                #                        if settings['auto_delete']:
+                 #                           await joelkb.delete()
+           #                         except KeyError:
+            #                            grpid = await active_connection(str(message.from_user.id))
+            #                            await save_group_settings(grpid, 'auto_delete', True)
+              #                          settings = await get_settings(message.chat.id)
+               #                         if settings['auto_delete']:
+               #                             await joelkb.delete()
+                #                else:
+             #                       try:
+             #                           if settings['auto_delete']:
+         #                                   await asyncio.sleep(600)
+                 #                           await joelkb.delete()
+               #                     except KeyError:
+             #                           grpid = await active_connection(str(message.from_user.id))
+           #                             await save_group_settings(grpid, 'auto_delete', True)
+             #                           settings = await get_settings(message.chat.id)
+            #                            if settings['auto_delete']:
+            #                                await asyncio.sleep(600)
+              #                              await joelkb.delete()
+              #              except KeyError:
+            #                    grpid = await active_connection(str(message.from_user.id))
+         #                       await save_group_settings(grpid, 'auto_ffilter', True)
+            #                    settings = await get_settings(message.chat.id)
+        #                        if settings['auto_ffilter']:
+             #                       await auto_filter(client, message)
 
-                    elif btn == "[]":
-                        joelkb = await client.send_cached_media(
-                            group_id,
-                            fileid,
-                            caption=reply_text or "",
-                            protect_content=True if settings["file_secure"] else False,
-                            reply_to_message_id=reply_id
-                        )
-                        try:
-                            if settings['auto_ffilter']:
-                                await auto_filter(client, message)
-                                try:
-                                    if settings['auto_delete']:
-                                        await joelkb.delete()
-                                except KeyError:
-                                    grpid = await active_connection(str(message.from_user.id))
-                                    await save_group_settings(grpid, 'auto_delete', True)
-                                    settings = await get_settings(message.chat.id)
-                                    if settings['auto_delete']:
-                                        await joelkb.delete()
-                            else:
-                                try:
-                                    if settings['auto_delete']:
-                                        await asyncio.sleep(600)
-                                        await joelkb.delete()
-                                except KeyError:
-                                    grpid = await active_connection(str(message.from_user.id))
-                                    await save_group_settings(grpid, 'auto_delete', True)
-                                    settings = await get_settings(message.chat.id)
-                                    if settings['auto_delete']:
-                                        await asyncio.sleep(600)
-                                        await joelkb.delete()
-                        except KeyError:
-                            grpid = await active_connection(str(message.from_user.id))
-                            await save_group_settings(grpid, 'auto_ffilter', True)
-                            settings = await get_settings(message.chat.id)
-                            if settings['auto_ffilter']:
-                                await auto_filter(client, message)
+        #            elif btn == "[]":
+       #                 joelkb = await client.send_cached_media(
+      #                      group_id,
+           #                 fileid,
+    #                        caption#=reply_text or "",
+#                     protect_content=True if settings["file_secure"] else False,
+       #                     reply_to_message_id=reply_id
+    #                    )
+         #               try:
+     #                       if settings['auto_ffilter']:
+     #                           await auto_filter(client, message)
+#try:
+       #                             if settings['auto_delete']:
+       #                                 #await joelkb.delete()
+          #                      except KeyError:
+          #                          grpid = await active_connection(str(message.from_user.id))
+         #                           await save_group_settings(grpid, 'auto_delete', True)
+         #                           settings = await get_settings(message.chat.id)
+         #                           if settings['auto_delete']:
+              #                          await joelkb.delete()
+          #                  else:
+            #                    try:
+            #                        if settings['auto_delete']:
+           #                             await asyncio.sleep(600)
+            #                            await joelkb.delete()
+          #                      except KeyError:
+           #                         grpid = await active_connection(str(message.from_user.id))
+           #                         await save_group_settings(grpid, 'auto_delete', True)
+           #                         settings = await get_settings(message.chat.id)
+          #                          if settings['auto_delete']:
+           #                             await asyncio.sleep(600)
+         #                               await joelkb.delete()
+          #              except KeyError:
+             #               grpid = await active_connection(str(message.from_user.id))
+           #                 await save_group_settings(grpid, 'auto_ffilter', True)
+           #                 settings = await get_settings(message.chat.id)
+         #                   if #settings['auto_ffilter']:
+            #                    await auto_filter(client, message)
 
-                    else:
-                        button = eval(btn)
-                        joelkb = await message.reply_cached_media(
-                            fileid,
-                            caption=reply_text or "",
-                            reply_markup=InlineKeyboardMarkup(button),
-                            reply_to_message_id=reply_id
-                        )
-                        try:
-                            if settings['auto_ffilter']:
-                                await auto_filter(client, message)
-                                try:
-                                    if settings['auto_delete']:
-                                        await joelkb.delete()
-                                except KeyError:
-                                    grpid = await active_connection(str(message.from_user.id))
-                                    await save_group_settings(grpid, 'auto_delete', True)
-                                    settings = await get_settings(message.chat.id)
-                                    if settings['auto_delete']:
-                                        await joelkb.delete()
-                            else:
-                                try:
-                                    if settings['auto_delete']:
-                                        await asyncio.sleep(600)
-                                        await joelkb.delete()
-                                except KeyError:
-                                    grpid = await active_connection(str(message.from_user.id))
-                                    await save_group_settings(grpid, 'auto_delete', True)
-                                    settings = await get_settings(message.chat.id)
-                                    if settings['auto_delete']:
-                                        await asyncio.sleep(600)
-                                        await joelkb.delete()
-                        except KeyError:
-                            grpid = await active_connection(str(message.from_user.id))
-                            await save_group_settings(grpid, 'auto_ffilter', True)
-                            settings = await get_settings(message.chat.id)
-                            if settings['auto_ffilter']:
-                                await auto_filter(client, message)
-
-                except Exception as e:
-                    logger.exception(e)
-                break
-    else:
-        return False
-
-async def global_filters(client, message, text=False):
-    settings = await get_settings(message.chat.id)
-    group_id = message.chat.id
-    name = text or message.text
-    reply_id = message.reply_to_message.id if message.reply_to_message else message.id
-    keywords = await get_gfilters('gfilters')
-    for keyword in reversed(sorted(keywords, key=len)):
-        pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
-        if re.search(pattern, name, flags=re.IGNORECASE):
-            reply_text, btn, alert, fileid = await find_gfilter('gfilters', keyword)
-
-            if reply_text:
-                reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
-
-            if btn is not None:
-                try:
-                    if fileid == "None":
-                        if btn == "[]":
-                            joelkb = await client.send_message(
-                                group_id, 
-                                reply_text, 
-                                disable_web_page_preview=True,
-                                reply_to_message_id=reply_id
-                            )
-                            manual = await manual_filters(client, message)
-                            if manual == False:
-                                settings = await get_settings(message.chat.id)
-                                try:
-                                    if settings['auto_ffilter']:
-                                        await auto_filter(client, message)
-                                        try:
-                                            if settings['auto_delete']:
-                                                await joelkb.delete()
-                                        except KeyError:
-                                            grpid = await active_connection(str(message.from_user.id))
-                                            await save_group_settings(grpid, 'auto_delete', True)
-                                            settings = await get_settings(message.chat.id)
-                                            if settings['auto_delete']:
-                                                await joelkb.delete()
-                                    else:
-                                        try:
-                                            if settings['auto_delete']:
-                                                await asyncio.sleep(600)
-                                                await joelkb.delete()
-                                        except KeyError:
-                                            grpid = await active_connection(str(message.from_user.id))
-                                            await save_group_settings(grpid, 'auto_delete', True)
-                                            settings = await get_settings(message.chat.id)
-                                            if settings['auto_delete']:
-                                                await asyncio.sleep(600)
-                                                await joelkb.delete()
-                                except KeyError:
-                                    grpid = await active_connection(str(message.from_user.id))
-                                    await save_group_settings(grpid, 'auto_ffilter', True)
-                                    settings = await get_settings(message.chat.id)
-                                    if settings['auto_ffilter']:
-                                        await auto_filter(client, message) 
-                            else:
-                                try:
-                                    if settings['auto_delete']:
-                                        await joelkb.delete()
-                                except KeyError:
-                                    grpid = await active_connection(str(message.from_user.id))
-                                    await save_group_settings(grpid, 'auto_delete', True)
-                                    settings = await get_settings(message.chat.id)
-                                    if settings['auto_delete']:
-                                        await joelkb.delete()
+      #              else:
+       #                 button = eval(btn)
+       #                 joelkb = await message.reply_cached_media(
+          #                  fileid,
+          #                  caption=reply_text or "",
+        #                    reply_markup=InlineKeyboardMarkup(button),
+        #                    reply_to_message_id=reply_id
+          #              )
+             #           try:
+         #                   if #settings['auto_ffilter']:
+           #                     await auto_filter(client, message)
+        #                        try:
+           #                         if settings['auto_delete']:
+          #                              await joelkb.delete()
+            #                    except KeyError:
+             #                       grpid = await active_connection(str(message.from_user.id))
+#await save_group_settings(grpid, 'auto_delete', True)
+          #                          settings = await get_settings(message.chat.id)
+         #                           if settings['auto_delete']:
+            #                            #await joelkb.delete()
+              #              else:
+               #                 try:
+               #                     if settings['auto_delete']:
+           #                             await asyncio.sleep(600)
+    #                                    await joelkb.delete()
+      #                          except KeyError:
+      #                              grpid = await active_connection(str(message.from_user.id))
+      #                              await save_group_settings(grpid, 'auto_delete', True)
+      #                              settings = await get_settings(message.chat.id)
+       #                             if settings['auto_delete']:
+   #                                     await asyncio.sleep(600)
+                                        #await joelkb.delete#()
+       #                 except KeyError:
+          #                  grpid = await active_connection(str#(message.from_user.id))
+            #                await save_group_settings(grpid, 'auto_ffilter', True)
                             
-                        else:
-                            button = eval(btn)
-                            joelkb = await client.send_message(
-                                group_id,
-                                reply_text,
-                                disable_web_page_preview=True,
-                                reply_markup=InlineKeyboardMarkup(button),
-                                reply_to_message_id=reply_id
-                            )
-                            manual = await manual_filters(client, message)
-                            if manual == False:
-                                settings = await get_settings(message.chat.id)
-                                try:
-                                    if settings['auto_ffilter']:
-                                        await auto_filter(client, message)
-                                        try:
-                                            if settings['auto_delete']:
-                                                await joelkb.delete()
-                                        except KeyError:
-                                            grpid = await active_connection(str(message.from_user.id))
-                                            await save_group_settings(grpid, 'auto_delete', True)
-                                            settings = await get_settings(message.chat.id)
-                                            if settings['auto_delete']:
-                                                await joelkb.delete()
-                                    else:
-                                        try:
-                                            if settings['auto_delete']:
-                                                await asyncio.sleep(600)
-                                                await joelkb.delete()
-                                        except KeyError:
-                                            grpid = await active_connection(str(message.from_user.id))
-                                            await save_group_settings(grpid, 'auto_delete', True)
-                                            settings = await get_settings(message.chat.id)
-                                            if settings['auto_delete']:
-                                                await asyncio.sleep(600)
-                                                await joelkb.delete()
-                                except KeyError:
-                                    grpid = await active_connection(str(message.from_user.id))
-                                    await save_group_settings(grpid, 'auto_ffilter', True)
-                                    settings = await get_settings(message.chat.id)
-                                    if settings['auto_ffilter']:
-                                        await auto_filter(client, message) 
-                            else:
-                                try:
-                                    if settings['auto_delete']:
-                                        await joelkb.delete()
-                                except KeyError:
-                                    grpid = await active_connection(str(message.from_user.id))
-                                    await save_group_settings(grpid, 'auto_delete', True)
-                                    settings = await get_settings(message.chat.id)
-                                    if settings['auto_delete']:
-                                        await joelkb.delete()
-
-                    elif btn == "[]":
-                        joelkb = await client.send_cached_media(
-                            group_id,
-                            fileid,
-                            caption=reply_text or "",
-                            reply_to_message_id=reply_id
-                        )
-                        manual = await manual_filters(client, message)
-                        if manual == False:
-                            settings = await get_settings(message.chat.id)
-                            try:
-                                if settings['auto_ffilter']:
-                                    await auto_filter(client, message)
-                                    try:
-                                        if settings['auto_delete']:
-                                            await joelkb.delete()
-                                    except KeyError:
-                                        grpid = await active_connection(str(message.from_user.id))
-                                        await save_group_settings(grpid, 'auto_delete', True)
-                                        settings = await get_settings(message.chat.id)
-                                        if settings['auto_delete']:
-                                            await joelkb.delete()
-                                else:
-                                    try:
-                                        if settings['auto_delete']:
-                                            await asyncio.sleep(600)
-                                            await joelkb.delete()
-                                    except KeyError:
-                                        grpid = await active_connection(str(message.from_user.id))
-                                        await save_group_settings(grpid, 'auto_delete', True)
-                                        settings = await get_settings(message.chat.id)
-                                        if settings['auto_delete']:
-                                            await asyncio.sleep(600)
-                                            await joelkb.delete()
-                            except KeyError:
-                                grpid = await active_connection(str(message.from_user.id))
-                                await save_group_settings(grpid, 'auto_ffilter', True)
-                                settings = await get_settings(message.chat.id)
-                                if settings['auto_ffilter']:
-                                    await auto_filter(client, message) 
-                        else:
-                            try:
-                                if settings['auto_delete']:
-                                    await joelkb.delete()
-                            except KeyError:
-                                grpid = await active_connection(str(message.from_user.id))
-                                await save_group_settings(grpid, 'auto_delete', True)
-                                settings = await get_settings(message.chat.id)
-                                if settings['auto_delete']:
-                                    await joelkb.delete()
-
-                    else:
-                        button = eval(btn)
-                        joelkb = await message.reply_cached_media(
-                            fileid,
-                            caption=reply_text or "",
-                            reply_markup=InlineKeyboardMarkup(button),
-                            reply_to_message_id=reply_id
-                        )
-                        manual = await manual_filters(client, message)
-                        if manual == False:
-                            settings = await get_settings(message.chat.id)
-                            try:
-                                if settings['auto_ffilter']:
-                                    await auto_filter(client, message)
-                                    try:
-                                        if settings['auto_delete']:
-                                            await joelkb.delete()
-                                    except KeyError:
-                                        grpid = await active_connection(str(message.from_user.id))
-                                        await save_group_settings(grpid, 'auto_delete', True)
-                                        settings = await get_settings(message.chat.id)
-                                        if settings['auto_delete']:
-                                            await joelkb.delete()
-                                else:
-                                    try:
-                                        if settings['auto_delete']:
-                                            await asyncio.sleep(600)
-                                            await joelkb.delete()
-                                    except KeyError:
-                                        grpid = await active_connection(str(message.from_user.id))
-                                        await save_group_settings(grpid, 'auto_delete', True)
-                                        settings = await get_settings(message.chat.id)
-                                        if settings['auto_delete']:
-                                            await asyncio.sleep(600)
-                                            await joelkb.delete()
-                            except KeyError:
-                                grpid = await active_connection(str(message.from_user.id))
-                                await save_group_settings(grpid, 'auto_ffilter', True)
-                                settings = await get_settings(message.chat.id)
-                                if settings['auto_ffilter']:
-                                    await auto_filter(client, message) 
-                        else:
-                            try:
-                                if settings['auto_delete']:
-                                    await joelkb.delete()
-                            except KeyError:
-                                grpid = await active_connection(str(message.from_user.id))
-                                await save_group_settings(grpid, 'auto_delete', True)
-                                settings = await get_settings(message.chat.id)
-                                if settings['auto_delete']:
-                                    await joelkb.delete()
-
                                 
-                except Exception as e:
-                    logger.exception(e)
-                break
-    else:
-        return False
+   #             except Exception as e:
+       #             logger.exception(e)
+   #             break
+  #  else:
+   #     return False
